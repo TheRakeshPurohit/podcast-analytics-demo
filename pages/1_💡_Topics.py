@@ -1,7 +1,7 @@
 import streamlit as st
 
 from src.auth import check_auth
-from src.ui import list_clips_for_topics, select_guest
+from src.ui import footer, list_clips_for_topics, select_guest
 
 check_auth()
 
@@ -15,3 +15,5 @@ selected_names = st.multiselect("Topic", options=names)
 
 if selected_names:
     list_clips_for_topics(youtube_url, selected_names, tags)
+
+footer()

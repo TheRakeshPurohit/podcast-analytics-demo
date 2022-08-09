@@ -1,7 +1,7 @@
 import streamlit as st
 
 from src.auth import check_auth
-from src.ui import STYLED_SENTIMENTS, list_clips_for_topics, select_guest
+from src.ui import STYLED_SENTIMENTS, footer, list_clips_for_topics, select_guest
 
 check_auth()
 
@@ -42,3 +42,5 @@ st.write(
 
 st.write("- " + "\n - ".join({tag.value["value"] for tag in name_tags}))
 list_clips_for_topics(youtube_url, name_tags, tags)
+
+footer()

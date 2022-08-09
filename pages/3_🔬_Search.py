@@ -2,7 +2,7 @@ import streamlit as st
 
 from src.auth import check_auth
 from src.data import load_timestamp_tags
-from src.ui import select_guest
+from src.ui import footer, select_guest
 from src.utils import get_steamship_client
 
 check_auth()
@@ -43,6 +43,7 @@ if search_terms:
 
     for ix, clip in enumerate(sorted(clips, key=lambda x: x["start_time"])):
         st.markdown(f"#### Fragment {ix}")
-        # st.markdown(clip["clip"])
         start_time = clip["start_time"]
         st.video(data=f"{youtube_url}?t={start_time}", start_time=start_time)
+
+footer()

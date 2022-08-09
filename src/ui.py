@@ -141,3 +141,25 @@ def list_clips_for_topics(
         st.write(f"Sentiment: {STYLED_SENTIMENTS.get(clip['sentiment'], clip['sentiment'])}")
         st.write(f"Speaker: {'Joe Rogan' if clip['speaker'] == 'spk_1' else 'Elon Musk'}")
         st.video(data=clip["video_url"], start_time=clip["start_time"])
+
+
+def footer():
+    hide_streamlit_style = """
+            <style>
+
+footer {
+	visibility: hidden;
+	}
+footer:after {
+	content:'Made with ❤️ on Steamship';
+	color: rgba(0,0,0,1);
+	visibility: visible;
+	display: block;
+	position: relative;
+	padding: 5px;
+	top: 2px;
+}
+            </style>
+
+"""
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
