@@ -44,7 +44,7 @@ def show_login_prompt(authorization_url):
     st.sidebar.write(
         f"""<a target="_self"
                                   href="{authorization_url}">
-                                  <image src="http://abbot-swagger-docs.s3-website-us-west-2.amazonaws.com/google_login_button.png" width="200px">
+                                  <image src="google_login_button.png" width="200px">
                                   </a>""",
         unsafe_allow_html=True,
     )
