@@ -45,7 +45,6 @@ def show_login_prompt(authorization_url):
     st.sidebar.markdown("Please sign in to use our app:")
 
     image = Path("google_login_button.png")
-    print(image.exists())
     file_ = image.open("rb")
     contents = file_.read()
     data_url = base64.b64encode(contents).decode("utf-8")

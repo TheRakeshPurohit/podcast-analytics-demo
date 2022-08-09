@@ -8,7 +8,7 @@ from src.utils import get_steamship_client
 check_auth()
 
 st.title("The Joe Rogan bible 📒")
-st.text("Let's scan the brains of Joe Rogan's guests.")
+st.markdown("Let's scan the brains of Joe Rogan's guests.")
 
 guest, youtube_url, tags = select_guest()
 
