@@ -10,7 +10,7 @@ from httpx_oauth.oauth2 import GetAccessTokenError
 def check_auth() -> None:
     client_id = st.secrets["google_oauth_client_id"]
     client_secret = st.secrets["google_oauth_client_secret"]
-    redirect_uri = "http://localhost:8502"
+    redirect_uri = st.secrets["redirect_uri"]
 
     client = GoogleOAuth2(client_id, client_secret)
 
