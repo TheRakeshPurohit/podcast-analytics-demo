@@ -52,7 +52,7 @@ def show_login_prompt(authorization_url):
     file_.close()
 
     st.sidebar.write(
-        f"""<a target="_self"
+        f"""<a target="_blank"
                                   href="{authorization_url}">
                                   <image src="data:image/gif;base64,{data_url}" width="200px">
                                   </a>""",
