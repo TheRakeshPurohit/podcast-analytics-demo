@@ -1,4 +1,6 @@
 import asyncio
+import base64
+from pathlib import Path
 
 import streamlit as st
 from httpx_oauth.clients.google import GoogleOAuth2
@@ -41,10 +43,18 @@ def check_auth() -> None:
 
 def show_login_prompt(authorization_url):
     st.sidebar.markdown("Please sign in to use our app:")
+
+    image = Path("google_login_button.png")
+    print(image.exists())
+    file_ = image.open("rb")
+    contents = file_.read()
+    data_url = base64.b64encode(contents).decode("utf-8")
+    file_.close()
+
     st.sidebar.write(
         f"""<a target="_self"
                                   href="{authorization_url}">
-                                  <image src="google_login_button.png" width="200px">
+                                  <image src="data:image/gif;base64,{data_url}" width="200px">
                                   </a>""",
         unsafe_allow_html=True,
     )
