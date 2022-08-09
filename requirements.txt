@@ -2,5 +2,4 @@ git+https://github.com/nludb/python-client@main
 pandas
 streamlit
 plotly
-fuzzywuzzy
-python-Levenshtein
+httpx-oauth
