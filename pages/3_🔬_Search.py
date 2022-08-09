@@ -36,7 +36,10 @@ if search_terms:
                         "video_url": f"{youtube_url}?t={start_time:.0f}",
                         "start_time": start_time,
                         "clip": " ".join(
-                            [tag.name for tag in timestamp_tags[ix : ix + 10 + len(search_terms)]]
+                            [
+                                tag.name
+                                for tag in timestamp_tags[ix - 10 : ix + 10 + len(search_terms)]
+                            ]
                         ),
                     }
                 )
@@ -44,6 +47,11 @@ if search_terms:
     for ix, clip in enumerate(sorted(clips, key=lambda x: x["start_time"])):
         st.markdown(f"#### Fragment {ix}")
         start_time = clip["start_time"]
+        st.markdown(
+            " ".join(
+                [f"**{word}**" if word in search_terms else word for word in clip["clip"].split()]
+            )
+        )
         st.video(data=f"{youtube_url}?t={start_time}", start_time=start_time)
 
 footer()
