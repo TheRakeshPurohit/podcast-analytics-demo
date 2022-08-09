@@ -1,7 +1,7 @@
 import streamlit as st
 
 from src.auth import check_auth
-from src.ui import select_guest, list_clips_for_topics
+from src.ui import list_clips_for_topics, select_guest
 
 check_auth()
 

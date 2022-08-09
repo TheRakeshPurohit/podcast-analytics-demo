@@ -1,6 +1,6 @@
 # https://pre-commit.com
-default_install_hook_types: [commit-msg, pre-commit]
-default_stages: [commit, manual]
+default_install_hook_types: [ commit-msg, pre-commit ]
+default_stages: [ commit, manual ]
 fail_fast: true
 repos:
   - repo: https://github.com/pre-commit/pygrep-hooks
@@ -20,7 +20,7 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
     hooks:
-#      - id: check-added-large-files
+      #      - id: check-added-large-files
       - id: check-ast
       - id: check-builtin-literals
       - id: check-case-conflict
@@ -38,43 +38,43 @@ repos:
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: trailing-whitespace
-        types: [python]
+        types: [ python ]
       - id: end-of-file-fixer
-        types: [python]
+        types: [ python ]
   - repo: local
     hooks:
       - id: pycln
         name: pycln
         entry: pycln --all
         language: python
-        types: [python]
+        types: [ python ]
       - id: isort
         name: isort
         entry: isort
         require_serial: true
         language: python
-        types: [python]
+        types: [ python ]
       - id: black
         name: black
         entry: black
         require_serial: true
         language: python
-        types: [python]
+        types: [ python ]
       - id: shellcheck
         name: shellcheck
         entry: shellcheck --check-sourced
         language: system
-        types: [shell]
-      - id: flake8
-        name: flake8
-        entry: flake8
-        language: system
-        types: [python]
-      - id: pydocstyle
-        name: pydocstyle
-        entry: pydocstyle
-        language: system
-        types: [python]
+        types: [ shell ]
+      #      - id: flake8
+      #        name: flake8
+      #        entry: flake8
+      #        language: system
+      #        types: [python]
+#      - id: pydocstyle
+#        name: pydocstyle
+#        entry: pydocstyle
+#        language: system
+#        types: [ python ]
 #      - id: mypy
 #        name: mypy
 #        entry: mypy
