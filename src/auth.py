@@ -16,7 +16,7 @@ def check_auth() -> None:
 
     authorization_url = asyncio.run(
         client.get_authorization_url(
-            redirect_uri, scope=["email"]
+            redirect_uri, scope=["email", "profile"]
         )
     )
 
