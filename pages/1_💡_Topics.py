@@ -2,13 +2,19 @@ from collections import defaultdict
 
 import streamlit as st
 
-from src.auth import check_auth
+from src.auth import authenticate, increase_usage
 from src.ui import footer, select_topic, list_clips_for_topics
-
-check_auth()
 
 st.title("The Joe Rogan bible 📒")
 st.markdown("Let's find out what Joe Rogan's guests say about your favorite topics.")
+
+authenticate()
+
+if not increase_usage():
+    st.error(
+        "Usage quota exceeded, [contact support](mailto:developers@steamship.com) for more credits."
+    )
+    st.stop()
 
 topic, files = select_topic()
 

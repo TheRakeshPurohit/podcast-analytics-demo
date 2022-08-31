@@ -35,6 +35,7 @@ def select_topic():
 
     topic = st.selectbox("Topic", options=topics,
                          format_func=lambda x: x.title())
+
     file_ids = topics[topic]
     if not file_ids:
         st.markdown("Please select a topic.")

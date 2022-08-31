@@ -1,12 +1,18 @@
 import streamlit as st
 
-from src.auth import check_auth
+from src.auth import authenticate, increase_usage
 from src.ui import footer, select_guest
 
-check_auth()
-
 st.title("The Joe Rogan bible 📒")
-st.markdown("Let's see what Joe Rogan's guests feel sad or happy about.")
+st.markdown("Get the insights of your favorite guests in 5 minutes instead of 3 hours.")
+
+authenticate()
+
+if not increase_usage():
+    st.error(
+        "Usage quota exceeded, [contact support](mailto:developers@steamship.com) for more credits."
+    )
+    st.stop()
 
 guest, youtube_url, tags = select_guest()
 
