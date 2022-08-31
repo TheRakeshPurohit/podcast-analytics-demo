@@ -42,10 +42,8 @@ def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
             return False
         else:
             with placeholder.container():
-                st.markdown(
-                    f"Signed in as {usage_stats['e-mail']}")
-                st.markdown(f" Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}"
-                            )
+                st.markdown(f"Signed in as {usage_stats['e-mail']}")
+                st.markdown(f" Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}")
             return True
     else:
         placeholder.markdown("Not logged in yet")
@@ -103,7 +101,6 @@ def get_google_oauth_client():
 
 def authenticate() -> None:
     """Authenticate the user using Google Oauth."""
-
     placeholder = st.sidebar.empty()
     st.session_state["placeholder"] = placeholder
     check_usage(st.session_state.get("usage_stats"))

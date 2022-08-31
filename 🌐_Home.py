@@ -1,3 +1,4 @@
+"""Main UI for the podcast analytics app."""
 from pathlib import Path
 
 import streamlit as st
@@ -5,9 +6,11 @@ import streamlit as st
 from src.auth import authenticate
 from src.ui import footer
 
-st.set_page_config(page_title="The Joe Rogan Bible  📒",
-                   page_icon=Path("data/logo.png").open("rb").read(),
-                   layout="centered")
+st.set_page_config(
+    page_title="The Joe Rogan Bible  📒",
+    page_icon=Path("data/logo.png").open("rb").read(),
+    layout="centered",
+)
 footer()
 
 authenticate()

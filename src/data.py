@@ -1,14 +1,16 @@
+"""Helper functions to load and store data."""
 from concurrent.futures import ThreadPoolExecutor
 from itertools import groupby
 
 import streamlit as st
-from steamship import Tag, File
+from steamship import File, Tag
 
 from src.utils import get_steamship_client
 
 
 @st.cache(ttl=3600, allow_output_mutation=True)
 def load_guests():
+    """Load the guests that appeared on the podcast."""
     return [
         tag
         for tag in Tag.query(
@@ -20,6 +22,7 @@ def load_guests():
 
 @st.cache(ttl=3600, allow_output_mutation=True)
 def load_topics():
+    """Load the topics mentioned on the podcasts."""
     topics = Tag.query(
         get_steamship_client(),
         tag_filter_query='blocktag and kind "entities" and samefile {filetag and kind "guest"}',
@@ -40,9 +43,9 @@ def load_topics():
             {
                 k: {tag.file_id for tag in v}
                 for k, v in groupby(
-                sorted(filtered_topics, key=lambda x: x.value["value"].lower()),
-                lambda x: x.value["value"].lower(),
-            )
+                    sorted(filtered_topics, key=lambda x: x.value["value"].lower()),
+                    lambda x: x.value["value"].lower(),
+                )
             }.items(),
             key=lambda x: -len(x[1]),
         )
@@ -51,4 +54,5 @@ def load_topics():
 
 @st.cache(ttl=3600, allow_output_mutation=True)
 def load_file(file_id: str) -> File:
+    """Load a Steamship file."""
     return File.get(get_steamship_client(), file_id).data

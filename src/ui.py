@@ -1,23 +1,27 @@
+"""Collection of helper functions to draw the ui with Streamlit."""
 from collections import Counter, defaultdict
 from typing import List, Union
 
 import streamlit as st
 from steamship import Tag
 
-from src.data import load_guests, load_file, load_topics
+from src.data import load_file, load_guests, load_topics
 
 STYLED_EMOTIONS = {"happiness": "Happy 😁", "anger": "Angry 😡", "unknown": "Not sure 🤧"}
 
-STYLED_SENTIMENTS = {"POS": "Positive 👍",
-                     "POSITIVE": "Positive 👍",
-                     "NEG": "Negative 👎",
-                     "NEGATIVE": "Negative 👎",
-                     "NEUTRAL": "Neutral 🇨🇭"}
+STYLED_SENTIMENTS = {
+    "POS": "Positive 👍",
+    "POSITIVE": "Positive 👍",
+    "NEG": "Negative 👎",
+    "NEGATIVE": "Negative 👎",
+    "NEUTRAL": "Neutral 🇨🇭",
+}
 
 STYLED_TAGS = {"emotions": STYLED_EMOTIONS, "sentiments": STYLED_SENTIMENTS}
 
 
 def select_guest():
+    """Select one of the guests that appeared on the podcast."""
     guest_tags = load_guests()
 
     guest_tag = st.selectbox("Guest", options=guest_tags, format_func=lambda x: x.name)
@@ -31,10 +35,10 @@ def select_guest():
 
 
 def select_topic():
+    """Select one of the topics mentioned on the podcasts."""
     topics = load_topics()
 
-    topic = st.selectbox("Topic", options=topics,
-                         format_func=lambda x: x.title())
+    topic = st.selectbox("Topic", options=topics, format_func=lambda x: x.title())
 
     file_ids = topics[topic]
     if not file_ids:
@@ -44,28 +48,34 @@ def select_topic():
 
 
 def list_clips_for_topics(
-        youtube_url: str, selected_names: Union[List[str], List[Tag]], tags: List[Tag], speaker: str = None,
+    youtube_url: str,
+    selected_topics: Union[List[str], List[Tag]],
+    tags: List[Tag],
+    speaker: str = None,
 ) -> None:
+    """List the Youtube clips mentioning one or more topics."""
     global_aggregated_tags = defaultdict(Counter)
     if (
-            isinstance(selected_names, list)
-            and len(selected_names) > 0
-            and isinstance(selected_names[0], str)
+        isinstance(selected_topics, list)
+        and len(selected_topics) > 0
+        and isinstance(selected_topics[0], str)
     ):
-        selected_names = dict(
+        selected_topics = dict(
             sorted(
                 {
                     tag.start_idx: tag
                     for tag in tags
-                    if tag.kind == "entities" and (
-                        tag.value["value"].lower() in selected_names or
-                        tag.name.lower() in selected_names)
+                    if tag.kind == "entities"
+                    and (
+                        tag.value["value"].lower() in selected_topics
+                        or tag.name.lower() in selected_topics
+                    )
                 }.items(),
                 key=lambda x: x,
             )
         ).values()
     clips = []
-    for name_tag in selected_names:
+    for name_tag in selected_topics:
         aggregated_overlapping_tags = defaultdict(list)
 
         for tag in [
@@ -73,7 +83,7 @@ def list_clips_for_topics(
             for tag in tags
             if tag.kind not in {"entities", "article-topics", "timestamp"}
             if (tag.start_idx is None or tag.start_idx <= name_tag.start_idx + len(name_tag.name))
-               and (tag.end_idx is None or tag.end_idx >= name_tag.end_idx - len(name_tag.name))
+            and (tag.end_idx is None or tag.end_idx >= name_tag.end_idx - len(name_tag.name))
         ]:
             aggregated_overlapping_tags[tag.kind].append(
                 STYLED_TAGS.get(tag.kind, {}).get(tag.name, tag.name)
@@ -141,7 +151,7 @@ def list_clips_for_topics(
 
     st.markdown("## Clips")
     for ix, clip in enumerate(clips):
-        st.markdown(f'#### Clip {ix + 1}')
+        st.markdown(f"#### Clip {ix + 1}")
         # st.write(f"Emotion: {STYLED_EMOTIONS.get(clip['emotion'], clip['emotion'])}")
         # st.write(f"Sentiment: {STYLED_SENTIMENTS.get(clip['sentiment'], clip['sentiment'])}")
         # st.write(f"Speaker: {'Joe Rogan' if clip['speaker'] == 'spk_1' else 'Elon Musk'}")
@@ -150,22 +160,23 @@ def list_clips_for_topics(
 
 
 def footer():
+    """Show the Made with <3 footer."""
     hide_streamlit_style = """
             <style>
 
 footer {
-	visibility: hidden;
-	}
-footer:after {
-	content:'Made with ❤️ on Steamship';
-	color: rgba(0,0,0,1);
-	visibility: visible;
-	display: block;
-	position: relative;
-	padding: 5px;
-	top: 2px;
+visibility: hidden;
 }
-            </style>
+footer:after {
+content:'Made with ❤️ on Steamship';
+color: rgba(0,0,0,1);
+visibility: visible;
+display: block;
+position: relative;
+padding: 5px;
+top: 2px;
+}
+</style>
 
 """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)

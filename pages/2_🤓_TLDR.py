@@ -1,3 +1,4 @@
+"""UI to browse podcast summaries."""
 import streamlit as st
 
 from src.auth import authenticate, increase_usage
@@ -16,12 +17,15 @@ if not increase_usage():
 
 guest, youtube_url, tags = select_guest()
 
-topics = sorted([tag for tag in tags if tag.kind == "topic_summary"],
-                key=lambda tag: -tag.value["relevance"])
+topics = sorted(
+    [tag for tag in tags if tag.kind == "topic_summary"], key=lambda tag: -tag.value["relevance"]
+)
 
 chapters = [tag for tag in tags if tag.kind == "chapter"]
 
-topic_hashtags = " #".join([topic.name.split(">")[-1] for topic in topics if topic.value["relevance"] > .5])
+topic_hashtags = " #".join(
+    [topic.name.split(">")[-1] for topic in topics if topic.value["relevance"] > 0.5]
+)
 st.markdown(f"##### #{topic_hashtags}")
 
 for chapter in chapters:

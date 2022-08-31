@@ -1,9 +1,10 @@
+"""UI to browse podcast episodes by topic."""
 from collections import defaultdict
 
 import streamlit as st
 
 from src.auth import authenticate, increase_usage
-from src.ui import footer, select_topic, list_clips_for_topics
+from src.ui import footer, list_clips_for_topics, select_topic
 
 st.title("The Joe Rogan bible 📒")
 st.markdown("Let's find out what Joe Rogan's guests say about your favorite topics.")
