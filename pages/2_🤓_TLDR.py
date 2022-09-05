@@ -29,8 +29,9 @@ topic_hashtags = " #".join(
 st.markdown(f"##### #{topic_hashtags}")
 
 for chapter in chapters:
+    print(chapter)
     st.markdown(f"## Chapter {chapter.name}: {chapter.value['gist']}")
-    st.markdown(f"#### {chapter.value['gist']}")
+    st.markdown(f"#### {chapter.value['headline']}")
     st.markdown(f"{chapter.value['summary']}")
     start = chapter.start_idx // 1000
     st.video(data=f"{youtube_url}?t={start:.0f}", start_time=start)
