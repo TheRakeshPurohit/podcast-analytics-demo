@@ -36,7 +36,9 @@ def select_guest():
 
 def select_topic():
     """Select one of the topics mentioned on the podcasts."""
-    topics = load_topics()
+    with st.spinner(
+            text="Please wait. Loading demo... This should take 2 minutes, depending on your internet connection."):
+        topics = load_topics()
 
     topic = st.selectbox("Topic", options=topics, format_func=lambda x: x.title())
 

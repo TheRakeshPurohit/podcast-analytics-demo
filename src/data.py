@@ -20,7 +20,7 @@ def load_guests():
     ]
 
 
-@st.cache(ttl=3600, allow_output_mutation=True)
+@st.cache(ttl=3600, allow_output_mutation=True, show_spinner=False)
 def load_topics():
     """Load the topics mentioned on the podcasts."""
     topics = Tag.query(
@@ -34,7 +34,7 @@ def load_topics():
         if topic.name not in ("email_address", "person_age", "url", "time", "money_amount")
     ]
 
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    with ThreadPoolExecutor(max_workers=len(topics)) as executor:
         for file_id in {tag.file_id for tag in topics}:
             executor.submit(load_file, file_id)
 
@@ -43,9 +43,9 @@ def load_topics():
             {
                 k: {tag.file_id for tag in v}
                 for k, v in groupby(
-                    sorted(filtered_topics, key=lambda x: x.value["value"].lower()),
-                    lambda x: x.value["value"].lower(),
-                )
+                sorted(filtered_topics, key=lambda x: x.value["value"].lower()),
+                lambda x: x.value["value"].lower(),
+            )
             }.items(),
             key=lambda x: -len(x[1]),
         )
