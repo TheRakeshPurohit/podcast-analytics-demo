@@ -48,17 +48,17 @@ def select_topic():
 
 
 def list_clips_for_topics(
-    youtube_url: str,
-    selected_topics: Union[List[str], List[Tag]],
-    tags: List[Tag],
-    speaker: str = None,
+        youtube_url: str,
+        selected_topics: Union[List[str], List[Tag]],
+        tags: List[Tag],
+        speaker: str = None,
 ) -> None:
     """List the Youtube clips mentioning one or more topics."""
     global_aggregated_tags = defaultdict(Counter)
     if (
-        isinstance(selected_topics, list)
-        and len(selected_topics) > 0
-        and isinstance(selected_topics[0], str)
+            isinstance(selected_topics, list)
+            and len(selected_topics) > 0
+            and isinstance(selected_topics[0], str)
     ):
         selected_topics = dict(
             sorted(
@@ -66,10 +66,10 @@ def list_clips_for_topics(
                     tag.start_idx: tag
                     for tag in tags
                     if tag.kind == "entities"
-                    and (
-                        tag.value["value"].lower() in selected_topics
-                        or tag.name.lower() in selected_topics
-                    )
+                       and (
+                               tag.value["value"].lower() in selected_topics
+                               or tag.name.lower() in selected_topics
+                       )
                 }.items(),
                 key=lambda x: x,
             )
@@ -83,7 +83,7 @@ def list_clips_for_topics(
             for tag in tags
             if tag.kind not in {"entities", "article-topics", "timestamp"}
             if (tag.start_idx is None or tag.start_idx <= name_tag.start_idx + len(name_tag.name))
-            and (tag.end_idx is None or tag.end_idx >= name_tag.end_idx - len(name_tag.name))
+               and (tag.end_idx is None or tag.end_idx >= name_tag.end_idx - len(name_tag.name))
         ]:
             aggregated_overlapping_tags[tag.kind].append(
                 STYLED_TAGS.get(tag.kind, {}).get(tag.name, tag.name)
@@ -168,7 +168,7 @@ footer {
 visibility: hidden;
 }
 footer:after {
-content:'Made with ❤️ on Steamship';
+content:'Made with ❤️ by Steamship';
 color: rgba(0,0,0,1);
 visibility: visible;
 display: block;

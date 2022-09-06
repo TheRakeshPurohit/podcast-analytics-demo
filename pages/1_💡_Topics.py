@@ -11,26 +11,21 @@ st.markdown("Let's find out what Joe Rogan's guests say about your favorite topi
 
 authenticate()
 
-if not increase_usage():
-    st.error(
-        "Usage quota exceeded, [contact support](mailto:developers@steamship.com) for more credits."
-    )
-    st.stop()
+if increase_usage():
+    topic, files = select_topic()
 
-topic, files = select_topic()
+    guest_to_file = defaultdict(list)
+    for file in files:
+        guest_tags = [tag for tag in file.tags if tag.kind == "guest"]
+        if guest_tags:
+            guest_to_file[guest_tags[0].name].append(file)
 
-guest_to_file = defaultdict(list)
-for file in files:
-    guest_tags = [tag for tag in file.tags if tag.kind == "guest"]
-    if guest_tags:
-        guest_to_file[guest_tags[0].name].append(file)
+    selected_guest = st.radio("Guest", options=guest_to_file)
 
-selected_guest = st.radio("Guest", options=guest_to_file)
-
-if selected_guest:
-    for file in guest_to_file[selected_guest]:
-        tags = file.blocks[0].tags
-        youtube_url = [tag.name for tag in file.tags if tag.kind == "youtube_url"][0]
-        list_clips_for_topics(youtube_url, [topic], tags, selected_guest)
+    if selected_guest:
+        for file in guest_to_file[selected_guest]:
+            tags = file.blocks[0].tags
+            youtube_url = [tag.name for tag in file.tags if tag.kind == "youtube_url"][0]
+            list_clips_for_topics(youtube_url, [topic], tags, selected_guest)
 
 footer()
