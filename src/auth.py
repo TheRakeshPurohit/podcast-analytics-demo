@@ -38,7 +38,7 @@ def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
         if usage_stats[APP_ID] > USAGE_LIMIT:
             with placeholder.container():
                 st.markdown(
-                    f"Signed in as {usage_stats['e-mail']}  \n \n  Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}"
+                    f"Signed in as {usage_stats['e-mail']} - Usage: {min(usage_stats[APP_ID], USAGE_LIMIT)}/{USAGE_LIMIT}"
                 )
                 st.error(USAGE_EXCEEDED_MESSAGE)
             return False
