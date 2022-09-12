@@ -14,7 +14,8 @@ from httpx_oauth.oauth2 import GetAccessTokenError
 GCRED_FILE_NAME = "gcred.json"
 USAGE_LIMIT = st.secrets["usage_limit"]
 APP_ID = st.secrets["app_id"]
-USAGE_EXCEEDED_MESSAGE = "Usage quota exceeded. \n \n Join our [private beta](https://caj4qt563o4.typeform.com/to/fVlZOBOb) for more credits."
+TYPEFORM_FORM = st.secrets["typeform_url"]
+USAGE_EXCEEDED_MESSAGE = f"Usage quota exceeded. \n \n Join our [private beta]({TYPEFORM_FORM}) for more credits."
 
 
 def get_worksheet():
@@ -45,13 +46,13 @@ def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
         else:
             with placeholder.container():
                 st.markdown(
-                    f"Signed in as {usage_stats['e-mail']} \n \n Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}"
+                    f"Signed in as {usage_stats['e-mail']} - Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}"
                 )
                 st.warning(
                     "We launched our private beta! 🥳 We're offering exclusive access to early birds. "
                     " \n "
                     " \n "
-                    "Sign up [here](https://caj4qt563o4.typeform.com/to/fVlZOBOb) and start shipping today.",
+                    f"Sign up [here]({TYPEFORM_FORM}) and start shipping today.",
                     icon="📣")
             return True
     else:
@@ -112,7 +113,7 @@ def get_google_oauth_client():
 
 def authenticate() -> None:
     """Authenticate the user using Google Oauth."""
-    placeholder = st.sidebar.empty()
+    placeholder = st.empty()
     st.session_state["placeholder"] = placeholder
 
     client = get_google_oauth_client()
