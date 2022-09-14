@@ -1,8 +1,11 @@
 """UI to browse podcast summaries."""
 import streamlit as st
+from steamship import Tag
 
 from src.auth import authenticate, increase_usage
+from src.data import fetch_youtube_url
 from src.ui import footer, select_guest
+from src.utils import get_steamship_client
 
 st.title("The Joe Rogan bible 📒")
 st.markdown("Get the insights of your favorite guests in 5 minutes instead of 3 hours.")
@@ -10,25 +13,38 @@ st.markdown("Get the insights of your favorite guests in 5 minutes instead of 3 
 authenticate()
 
 if increase_usage():
-    guest, youtube_url, tags = select_guest()
+    selected_guest, file_ids = select_guest()
 
-    topics = sorted(
-        [tag for tag in tags if tag.kind == "topic_summary"], key=lambda tag: -tag.value["relevance"]
-    )
+    episode_idx = st.radio(label="Episode", options=range(len(file_ids)), format_func=lambda x: f"Episode {x + 1}")
 
-    chapters = [tag for tag in tags if tag.kind == "chapter"]
+    if episode_idx is not None:
+        file_id = file_ids[episode_idx]
+        youtube_url = fetch_youtube_url(file_id)
 
-    topic_hashtags = " #".join(
-        [topic.name.split(">")[-1] for topic in topics if topic.value["relevance"] > 0.5]
-    )
-    st.markdown(f"##### #{topic_hashtags}")
+        topics = sorted(
+            Tag.query(
+                get_steamship_client(),
+                tag_filter_query=f'blocktag and kind "topic_summary" '
+                                 f'and samefile {{ file_id "{file_id}" }}',
+            ).data.tags, key=lambda tag: -tag.value["relevance"]
+        )
 
-    for chapter in chapters:
-        print(chapter)
-        st.markdown(f"## Chapter {chapter.name}: {chapter.value['gist']}")
-        st.markdown(f"#### {chapter.value['headline']}")
-        st.markdown(f"{chapter.value['summary']}")
-        start = chapter.start_idx // 1000
-        st.video(data=f"{youtube_url}?t={start:.0f}", start_time=start)
+        chapters = Tag.query(
+            get_steamship_client(),
+            tag_filter_query=f'blocktag and kind "chapter" '
+                             f'and samefile {{ file_id "{file_id}" }}',
+        ).data.tags
+
+        topic_hashtags = " #".join(
+            [topic.name.split(">")[-1] for topic in topics if topic.value["relevance"] > 0.5]
+        )
+        st.markdown(f"##### #{topic_hashtags}")
+
+        for chapter in chapters:
+            st.markdown(f"## Chapter {chapter.name}: {chapter.value['gist']}")
+            st.markdown(f"#### {chapter.value['headline']}")
+            st.markdown(f"{chapter.value['summary']}")
+            start = chapter.start_idx // 1000
+            st.video(data=f"{youtube_url}?t={start:.0f}", start_time=start)
 
 footer()
