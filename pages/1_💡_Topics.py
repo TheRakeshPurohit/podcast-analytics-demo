@@ -14,9 +14,7 @@ authenticate()
 if increase_usage():
     selected_topic = select_topic()
 
-    guests = select_guests_by_topic(selected_topic)
-
-    selected_guest = st.radio("Guest", options=guests)
+    selected_guest = st.selectbox("Guest", options=select_guests_by_topic(selected_topic))
 
     if selected_guest:
         list_clips_for_topics(selected_topic, selected_guest)

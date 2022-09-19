@@ -1,9 +1,13 @@
 """Collection of helper functions to draw the ui with Streamlit."""
-from itertools import groupby
+from time import perf_counter
+from typing import List, Union
 
+import plotly.graph_objects as go
 import streamlit as st
+from steamship import Tag
 
 from src.data import load_guest_tags, load_topics, get_entity_tags_by_topic, fetch_youtube_url
+from src.utils import get_steamship_client
 
 STYLED_EMOTIONS = {"happiness": "Happy 😁", "anger": "Angry 😡", "unknown": "Not sure 🤧"}
 
@@ -15,13 +19,18 @@ STYLED_SENTIMENTS = {
     "NEUTRAL": "Neutral 🇨🇭",
 }
 
+INTERESTING_SENTIMENTS = {
+    "NEGATIVE": {"title": "Negative", "color": "#FF4E4E"},
+    "NEUTRAL": {"title": "Positive", "color": "#CECECE"},
+    "POSITIVE": {"title": "Neutral", "color": "#55D078"},
+}
+
 STYLED_TAGS = {"emotions": STYLED_EMOTIONS, "sentiments": STYLED_SENTIMENTS}
 
 
 def select_guest():
     """Select one of the guests that appeared on the podcast."""
-    guest_to_file_ids = {k: {x.file_id for x in v} for k, v in
-                         groupby(sorted(load_guest_tags(), key=lambda x: x.name), key=lambda x: x.name)}
+    guest_to_file_ids = load_guest_tags()
     guest, file_ids = st.selectbox("Guest", options=guest_to_file_ids.items(), format_func=lambda x: x[0])
     if not guest:
         st.markdown("Please select a guest.")
@@ -39,9 +48,7 @@ def list_clips_for_topics(
         selected_speaker: str = None,
 ) -> None:
     """List the Youtube clips mentioning one or more topics."""
-    print("selected_topic", selected_topic)
     entity_tags = get_entity_tags_by_topic(selected_topic, selected_speaker)
-
     unique_entity_tags = dict(
         sorted(
             {
@@ -52,59 +59,105 @@ def list_clips_for_topics(
         )
     ).values()
 
-    clips = []
-    for entity_tag in unique_entity_tags:
-        # aggregated_overlapping_tags = defaultdict(list)
-        #
-        # for tag in [
-        #     tag
-        #     for tag in tags
-        #     if tag.kind not in {"entities", "article-topics", "timestamp"}
-        #     if (tag.start_idx is None or tag.start_idx <= entity_tag.start_idx + len(entity_tag.name))
-        #        and (tag.end_idx is None or tag.end_idx >= entity_tag.end_idx - len(entity_tag.name))
-        # ]:
-        #     aggregated_overlapping_tags[tag.kind].append(
-        #         STYLED_TAGS.get(tag.kind, {}).get(tag.name, tag.name)
-        #     )
-        #
-        # if "emotions" not in aggregated_overlapping_tags:
-        #     aggregated_overlapping_tags["emotions"].append(STYLED_EMOTIONS["unknown"])
-        #
-        # if "sentiments" not in aggregated_overlapping_tags:
-        #     aggregated_overlapping_tags["sentiments"].append(STYLED_SENTIMENTS["NEUTRAL"])
-        #
-        # if "speaker" not in aggregated_overlapping_tags:
-        #     aggregated_overlapping_tags["speaker"].append("unkown")
-        #
-        # for tag_kind in ("emotions", "sentiments", "speaker"):
-        #     global_aggregated_tags[tag_kind].update(aggregated_overlapping_tags[tag_kind])
-
-        start_time = float(entity_tag.start_idx // 1_000)
-
-        # emotion = aggregated_overlapping_tags["emotions"][0]
-        # sentiment = aggregated_overlapping_tags["sentiments"][0]
-        # speaker = speaker or aggregated_overlapping_tags["speaker"][0]
-        youtube_url = fetch_youtube_url(entity_tag.file_id)
-
-        clips.append(
-            {
-                "name": entity_tag.value["value"],
-                # "emotion": emotion,
-                # "sentiment": sentiment,
-                "speaker": selected_speaker,
-                "video_url": f"{youtube_url}?t={start_time:.0f}",
-                "start_time": int(start_time),
-            }
-        )
+    placeholder = st.empty()
 
     st.markdown("## Clips")
-    for ix, clip in enumerate(clips):
+
+    sentiments = []
+
+    t0 = perf_counter()
+    for ix, entity_tag in enumerate(unique_entity_tags):
+        sentiment_tags = Tag.query(get_steamship_client(),
+                                   tag_filter_query=f'blocktag and kind "sentiment" and overlaps {{tag_id "{entity_tag.id}"}}').data.tags
+        sentiment = sentiment_tags[0].name
+        sentiments.append(sentiment_tags[0].name)
+
+        speaker_tags = Tag.query(get_steamship_client(),
+                                 tag_filter_query=f'blocktag and kind "speaker" and overlaps {{tag_id "{entity_tag.id}"}}').data.tags
+        speaker = speaker_tags[0].name
+        start_time = float(entity_tag.value["start_time"] // 1_000)
+        youtube_url = fetch_youtube_url(entity_tag.file_id)
+        video_url = f"{youtube_url}?t={start_time:.0f}"
+
         st.markdown(f"#### Clip {ix + 1}")
-        # st.write(f"Emotion: {STYLED_EMOTIONS.get(clip['emotion'], clip['emotion'])}")
-        # st.write(f"Sentiment: {STYLED_SENTIMENTS.get(clip['sentiment'], clip['sentiment'])}")
-        # st.write(f"Speaker: {'Joe Rogan' if clip['speaker'] == 'spk_1' else 'Elon Musk'}")
-        st.video(data=clip["video_url"], start_time=clip["start_time"])
-        st.write(clip["video_url"])
+        st.write(f"Sentiment: {STYLED_SENTIMENTS.get(sentiment, sentiment)}")
+        st.write(f"Speaker: {speaker}")
+        st.video(data=video_url, start_time=int(start_time))
+        st.write(video_url)
+    print("timing", perf_counter() - t0)
+    counts = [
+        sentiments.count(sentiment) / len(sentiments) * 100 for sentiment in INTERESTING_SENTIMENTS
+    ]
+    with placeholder.container():
+        plot_sentiment_stats(counts, list(INTERESTING_SENTIMENTS),
+                             [props["color"] for props in INTERESTING_SENTIMENTS.values()])
+
+
+def plot_sentiment_stats(x: List[Union[int, float]], y: List[str], colors: List[str]) -> None:
+    """Display the sentiment distribution on a horizontal bar plot."""
+    fig = go.Figure()
+
+    for ix, xd in enumerate(x):
+        fig.add_trace(
+            go.Bar(
+                x=[xd],
+                y=[0],
+                orientation="h",
+                marker=dict(
+                    color=colors[ix],
+                ),
+                hovertemplate="<br>".join(
+                    [
+                        f"Label: {y[ix]}",
+                        "Relative Frequency: %{x:.2f}%",
+                    ]
+                ),
+            )
+        )
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        barmode="stack",
+        margin=dict(l=0, r=0, t=0, b=0),
+        showlegend=False,
+        autosize=False,
+        height=50,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+
+    annotations = []
+
+    space = 0
+    for xd, yd in zip(x, y):
+        # labeling the rest of percentages for each bar (x_axis)
+        annotations.append(
+            dict(
+                xref="x",
+                yref="y",
+                x=space + (xd / 2),
+                y=0,
+                text=f"{yd} ({xd:.2f}%)",
+                font=dict(family="Arial", size=14, color="rgb(248, 248, 255)"),
+                showarrow=False,
+            )
+        )
+        space += xd
+
+    fig.update_layout(annotations=annotations)
+
+    st.plotly_chart(fig)
 
 
 def footer():

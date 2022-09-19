@@ -1,6 +1,6 @@
 """Helper functions to load and store data."""
 from itertools import groupby
-from typing import List
+from typing import List, Dict, Set
 
 import streamlit as st
 from steamship import Tag
@@ -9,12 +9,15 @@ from src.utils import get_steamship_client
 
 
 @st.cache(ttl=3600)
-def load_guest_tags() -> List[Tag]:
+def load_guest_tags() -> Dict[str, Set[str]]:
     """Load the guests that appeared on the podcast."""
-    return Tag.query(
+    guest_tags = Tag.query(
         get_steamship_client(),
-        tag_filter_query='filetag and kind "guest" and samefile {kind "entities"}',
+        tag_filter_query='filetag and kind "guest"',
     ).data.tags
+
+    return {k: {x.file_id for x in v} for k, v in
+            groupby(sorted(guest_tags, key=lambda x: x.name), key=lambda x: x.name)}
 
 
 @st.cache(ttl=3600)
@@ -22,23 +25,22 @@ def select_guests_by_topic(topic: str) -> List[str]:
     return [tag.name for tag in Tag.query(
         get_steamship_client(),
         tag_filter_query=f'filetag and kind "guest" '
-                         f'and samefile {{blocktag and kind "entities" '
-                         f'         and ( value("value") = "{topic}" or value("value") = "{topic.lower()}" ) }}',
+                         f'and samefile {{ name "{topic}" or name "{topic.lower()}" }}',
     ).data.tags]
 
 
 @st.cache(ttl=3600)
 def load_topics() -> List[str]:
     """Load the topics mentioned on the podcasts."""
-    topics = Tag.query(
+    entity_tags = Tag.query(
         get_steamship_client(),
-        tag_filter_query='blocktag and kind "entities" and samefile {filetag and kind "guest"}',
+        tag_filter_query='blocktag and kind "entity"',
     ).data.tags
 
-    filtered_topics = [
+    filtered_entity_tags = [
         topic
-        for topic in topics
-        if topic.name not in ("email_address", "person_age", "url", "time", "money_amount")
+        for topic in entity_tags
+        if topic.value["type"] not in ("email_address", "person_age", "url", "time", "money_amount")
     ]
 
     return [k.title() for k, v in
@@ -46,8 +48,8 @@ def load_topics() -> List[str]:
                 {
                     k: {tag.file_id for tag in v}
                     for k, v in groupby(
-                    sorted(filtered_topics, key=lambda x: x.value["value"].lower()),
-                    lambda x: x.value["value"].lower(),
+                    sorted(filtered_entity_tags, key=lambda x: x.name.lower()),
+                    lambda x: x.name.lower(),
                 )
                 }.items(),
                 key=lambda x: -len(x[1]),
@@ -55,12 +57,12 @@ def load_topics() -> List[str]:
 
 
 @st.cache(ttl=3600)
-def get_entity_tags_by_topic(selected_topic: str, selected_speaker: str):
+def get_entity_tags_by_topic(selected_topic: str, selected_speaker: str) -> List[Tag]:
     return Tag.query(
         get_steamship_client(),
-        tag_filter_query=f'blocktag and kind "entities" '
-                         f'and ( value(\"value\") = \"{selected_topic}\" or name \"{selected_topic}\" '
-                         f'or value(\"value\") = \"{selected_topic.lower()}\" or name \"{selected_topic.lower()}\" ) '
+        tag_filter_query=f'blocktag '
+                         f'and ( value(\"type\") = \"{selected_topic}\" or name \"{selected_topic}\" '
+                         f'or value(\"type\") = \"{selected_topic.lower()}\" or name \"{selected_topic.lower()}\" ) '
                          f'and samefile {{ filetag and kind \"guest\" and name \"{selected_speaker}\"}}',
     ).data.tags
 
