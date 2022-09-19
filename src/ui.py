@@ -89,6 +89,7 @@ def list_clips_for_topics(
         sentiments.count(sentiment) / len(sentiments) * 100 for sentiment in INTERESTING_SENTIMENTS
     ]
     with placeholder.container():
+        print("plotting stats")
         plot_sentiment_stats(counts, list(INTERESTING_SENTIMENTS),
                              [props["color"] for props in INTERESTING_SENTIMENTS.values()])
 
