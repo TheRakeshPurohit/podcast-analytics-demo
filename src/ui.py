@@ -1,6 +1,7 @@
 """Collection of helper functions to draw the ui with Streamlit."""
+from concurrent.futures import ThreadPoolExecutor
 from time import perf_counter
-from typing import List, Union
+from typing import Union, Dict
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -43,6 +44,14 @@ def select_topic():
     return st.selectbox("Topic", options=load_topics())
 
 
+def fetch_sentiment_and_speaker_tag(entity_tag_id: str):
+    sentiment_tags = Tag.query(get_steamship_client(),
+                               tag_filter_query=f'blocktag and kind "sentiment" and overlaps {{tag_id "{entity_tag_id}"}}').data.tags
+    speaker_tags = Tag.query(get_steamship_client(),
+                             tag_filter_query=f'blocktag and kind "speaker" and overlaps {{tag_id "{entity_tag_id}"}}').data.tags
+    return sentiment_tags[0].name, speaker_tags[0].name
+
+
 def list_clips_for_topics(
         selected_topic: str,
         selected_speaker: str = None,
@@ -66,51 +75,50 @@ def list_clips_for_topics(
     sentiments = []
 
     t0 = perf_counter()
-    for ix, entity_tag in enumerate(unique_entity_tags):
-        sentiment_tags = Tag.query(get_steamship_client(),
-                                   tag_filter_query=f'blocktag and kind "sentiment" and overlaps {{tag_id "{entity_tag.id}"}}').data.tags
-        sentiment = sentiment_tags[0].name
-        sentiments.append(sentiment_tags[0].name)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_entity = {executor.submit(fetch_sentiment_and_speaker_tag, entity_tag.id): entity_tag for entity_tag
+                            in unique_entity_tags}
 
-        speaker_tags = Tag.query(get_steamship_client(),
-                                 tag_filter_query=f'blocktag and kind "speaker" and overlaps {{tag_id "{entity_tag.id}"}}').data.tags
-        speaker = speaker_tags[0].name
+    for ix, (future, entity_tag) in enumerate(future_to_entity.items()):
+        sentiment, speaker = future.result()
+        sentiments.append(sentiment)
+
         start_time = float(entity_tag.value["start_time"] // 1_000)
         youtube_url = fetch_youtube_url(entity_tag.file_id)
         video_url = f"{youtube_url}?t={start_time:.0f}"
 
         st.markdown(f"#### Clip {ix + 1}")
         st.write(f"Sentiment: {STYLED_SENTIMENTS.get(sentiment, sentiment)}")
-        st.write(f"Speaker: {speaker}")
+        st.write(f"Speaker: {'Joe Rogan' if speaker == 'A' else selected_speaker}")
         st.video(data=video_url, start_time=int(start_time))
         st.write(video_url)
     print("timing", perf_counter() - t0)
-    counts = [
-        sentiments.count(sentiment) / len(sentiments) * 100 for sentiment in INTERESTING_SENTIMENTS
-    ]
+    sentiment_to_count = {sentiment: sentiments.count(sentiment) / len(sentiments) * 100
+                          for sentiment in INTERESTING_SENTIMENTS
+                          if sentiments.count(sentiment) > 0
+                          }
+
     with placeholder.container():
-        print("plotting stats")
-        plot_sentiment_stats(counts, list(INTERESTING_SENTIMENTS),
-                             [props["color"] for props in INTERESTING_SENTIMENTS.values()])
+        plot_sentiment_stats(sentiment_to_count)
 
 
-def plot_sentiment_stats(x: List[Union[int, float]], y: List[str], colors: List[str]) -> None:
+def plot_sentiment_stats(y_to_x: Dict[str, Union[int, float]]) -> None:
     """Display the sentiment distribution on a horizontal bar plot."""
     fig = go.Figure()
 
-    for ix, xd in enumerate(x):
+    for ix, (yd, xd) in enumerate(y_to_x.items()):
         fig.add_trace(
             go.Bar(
                 x=[xd],
                 y=[0],
                 orientation="h",
                 marker=dict(
-                    color=colors[ix],
+                    color=INTERESTING_SENTIMENTS[yd]["color"],
                 ),
                 hovertemplate="<br>".join(
                     [
-                        f"Label: {y[ix]}",
-                        "Relative Frequency: %{x:.2f}%",
+                        f"Label: {yd}",
+                        "Relative Frequency: %{x:.0f}%",
                     ]
                 ),
             )
@@ -141,7 +149,7 @@ def plot_sentiment_stats(x: List[Union[int, float]], y: List[str], colors: List[
     annotations = []
 
     space = 0
-    for xd, yd in zip(x, y):
+    for yd, xd in y_to_x.items():
         # labeling the rest of percentages for each bar (x_axis)
         annotations.append(
             dict(
@@ -149,7 +157,7 @@ def plot_sentiment_stats(x: List[Union[int, float]], y: List[str], colors: List[
                 yref="y",
                 x=space + (xd / 2),
                 y=0,
-                text=f"{yd} ({xd:.2f}%)",
+                text=f"{yd} ({xd:.0f}%)",
                 font=dict(family="Arial", size=14, color="rgb(248, 248, 255)"),
                 showarrow=False,
             )
