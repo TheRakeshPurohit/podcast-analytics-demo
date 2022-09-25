@@ -21,11 +21,16 @@ def load_guest_tags() -> Dict[str, Set[str]]:
 
 
 @st.cache(ttl=3600)
-def select_guests_by_topic(topic: str) -> List[str]:
+def select_guests_by_topic(selected_topic: str) -> List[str]:
     return [tag.name for tag in Tag.query(
         get_steamship_client(),
         tag_filter_query=f'filetag and kind "guest" '
-                         f'and samefile {{ name "{topic}" or name "{topic.lower()}" }}',
+                         f'and samefile {{ '
+                         f'     name "{selected_topic}" '
+                         f'     or name "{selected_topic.lower()}" '
+                         f'     or name "{selected_topic.upper()}" '
+                         f'     or name "{selected_topic.capitalize()}" '
+                         f'}}',
     ).data.tags]
 
 
@@ -61,9 +66,11 @@ def get_entity_tags_by_topic(selected_topic: str, selected_speaker: str) -> List
     return Tag.query(
         get_steamship_client(),
         tag_filter_query=f'blocktag '
-                         f'and ( value(\"type\") = \"{selected_topic}\" or name \"{selected_topic}\" '
-                         f'or value(\"type\") = \"{selected_topic.lower()}\" or name \"{selected_topic.lower()}\" ) '
-                         f'and samefile {{ filetag and kind \"guest\" and name \"{selected_speaker}\"}}',
+                         f'and (name "{selected_topic}" '
+                         f'     or name "{selected_topic.lower()}" '
+                         f'     or name "{selected_topic.upper()}" '
+                         f'     or name "{selected_topic.capitalize()}" ) '
+                         f'and samefile {{ filetag and kind "guest" and name "{selected_speaker}"}}',
     ).data.tags
 
 

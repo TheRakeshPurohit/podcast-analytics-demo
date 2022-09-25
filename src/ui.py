@@ -1,6 +1,5 @@
 """Collection of helper functions to draw the ui with Streamlit."""
 from concurrent.futures import ThreadPoolExecutor
-from time import perf_counter
 from typing import Union, Dict
 
 import plotly.graph_objects as go
@@ -70,11 +69,8 @@ def list_clips_for_topics(
 
     placeholder = st.empty()
 
-    st.markdown("## Clips")
-
     sentiments = []
 
-    t0 = perf_counter()
     with ThreadPoolExecutor(max_workers=10) as executor:
         future_to_entity = {executor.submit(fetch_sentiment_and_speaker_tag, entity_tag.id): entity_tag for entity_tag
                             in unique_entity_tags}
@@ -92,7 +88,6 @@ def list_clips_for_topics(
         st.write(f"Speaker: {'Joe Rogan' if speaker == 'A' else selected_speaker}")
         st.video(data=video_url, start_time=int(start_time))
         st.write(video_url)
-    print("timing", perf_counter() - t0)
     sentiment_to_count = {sentiment: sentiments.count(sentiment) / len(sentiments) * 100
                           for sentiment in INTERESTING_SENTIMENTS
                           if sentiments.count(sentiment) > 0
@@ -178,7 +173,7 @@ footer {
 visibility: hidden;
 }
 footer:after {
-content:'Made with ❤️ by Steamship';
+content:'Made with ❤️ on Steamship';
 color: rgba(0,0,0,1);
 visibility: visible;
 display: block;

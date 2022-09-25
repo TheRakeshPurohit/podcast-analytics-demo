@@ -15,7 +15,6 @@ GCRED_FILE_NAME = "gcred.json"
 USAGE_LIMIT = st.secrets["usage_limit"]
 APP_ID = st.secrets["app_id"]
 TYPEFORM_FORM = st.secrets["typeform_url"]
-USAGE_EXCEEDED_MESSAGE = f"Usage quota exceeded. \n \n Join our [private beta]({TYPEFORM_FORM}) for more credits."
 
 
 def get_worksheet():
@@ -34,29 +33,28 @@ def get_worksheet():
 
 def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
     """Check if the user has not surpassed the usage limit for this app."""
-    placeholder = st.session_state["placeholder"]
     if usage_stats:
+        with st.session_state["sidebar_placeholder"].container():
+            st.markdown("### 👆 Click one of the links to get started")
+            st.markdown(
+                f"Signed in as {usage_stats['e-mail']} \n \n Credits: {min(usage_stats[APP_ID], USAGE_LIMIT)}/{USAGE_LIMIT}"
+            )
+            st.info(
+                "We're live!"
+                " \n "
+                " \n "
+                f"Sign up [here]({TYPEFORM_FORM}) to analyze and index your own podcasts.",
+                icon="🥳")
         if usage_stats[APP_ID] > USAGE_LIMIT:
-            with placeholder.container():
-                st.markdown(
-                    f"Signed in as {usage_stats['e-mail']} - Usage: {min(usage_stats[APP_ID], USAGE_LIMIT)}/{USAGE_LIMIT}"
-                )
-                st.error(USAGE_EXCEEDED_MESSAGE)
+            with st.session_state["callout_placeholder"]:
+                st.error(
+                    f"You've used up all your usage credits. \n \n [Contact us]({TYPEFORM_FORM}) for more credits.",
+                    icon="😱")
             return False
         else:
-            with placeholder.container():
-                st.markdown(
-                    f"Signed in as {usage_stats['e-mail']} - Usage: {usage_stats[APP_ID]}/{USAGE_LIMIT}"
-                )
-                st.warning(
-                    "We launched our private beta! 🥳 We're offering exclusive access to early birds. "
-                    " \n "
-                    " \n "
-                    f"Sign up [here]({TYPEFORM_FORM}) and start shipping today.",
-                    icon="📣")
             return True
     else:
-        placeholder.markdown("Not logged in yet.")
+        st.session_state["callout_placeholder"].markdown("Not logged in yet.")
         return False
 
 
@@ -114,7 +112,10 @@ def get_google_oauth_client():
 def authenticate() -> None:
     """Authenticate the user using Google Oauth."""
     placeholder = st.empty()
-    st.session_state["placeholder"] = placeholder
+    st.session_state["callout_placeholder"] = placeholder
+
+    placeholder = st.sidebar.empty()
+    st.session_state["sidebar_placeholder"] = placeholder
 
     client = get_google_oauth_client()
 
@@ -144,17 +145,16 @@ def authenticate() -> None:
 
 def show_login_prompt(authorization_url):
     """Show Google Oauth login prompt."""
-    st.markdown("Please sign in to use our app")
-
+    st.sidebar.markdown("### Please sign in to use the app \n"
+                        "We have to protect our engine from bots!")
     image = Path("data/google_login_button.png")
     file_ = image.open("rb")
     contents = file_.read()
     data_url = base64.b64encode(contents).decode("utf-8")
     file_.close()
 
-    st.write(
-        f"""<a target="_blank"
-                                  href="{authorization_url}">
+    st.sidebar.write(
+        f"""<a target="_self" href="{authorization_url}">
                                   <image src="data:image/gif;base64,{data_url}" width="200px">
                                   </a>""",
         unsafe_allow_html=True,
