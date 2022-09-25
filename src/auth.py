@@ -40,7 +40,7 @@ def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
                 f"Signed in as {usage_stats['e-mail']} \n \n Credits: {min(usage_stats[APP_ID], USAGE_LIMIT)}/{USAGE_LIMIT}"
             )
             st.info(
-                "We're live!"
+                "Try it yourself!"
                 " \n "
                 " \n "
                 f"Sign up [here]({TYPEFORM_FORM}) to analyze and index your own podcasts.",
