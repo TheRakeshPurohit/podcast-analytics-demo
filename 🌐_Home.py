@@ -7,13 +7,13 @@ from src.auth import authenticate, TYPEFORM_FORM
 from src.ui import footer
 
 st.set_page_config(
-    page_title="The Joe Rogan Bible  📒",
+    page_title="The Joe Rogan Index  📒",
     page_icon=Path("data/logo.png").open("rb").read(),
     layout="centered",
 )
 footer()
 
-st.title("The Joe Rogan Bible 📒")
+st.title("The Joe Rogan Index 📒")
 
 redirect_uri = st.secrets["redirect_uri"]
 st.markdown(f"### 💡 Topics \n "

@@ -6,7 +6,7 @@ from src.auth import authenticate, increase_usage
 from src.data import select_guests_by_topic
 from src.ui import footer, list_clips_for_topics, select_topic
 
-st.title("The Joe Rogan bible 📒")
+st.title("The Joe Rogan Index 📒")
 st.markdown("Let's find out what Joe Rogan's guests say about your favorite topics.")
 
 authenticate()

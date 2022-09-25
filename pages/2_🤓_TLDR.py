@@ -7,7 +7,7 @@ from src.data import fetch_youtube_url
 from src.ui import footer, select_guest
 from src.utils import get_steamship_client
 
-st.title("The Joe Rogan bible 📒")
+st.title("The Joe Rogan Index 📒")
 st.markdown("Get the insights of your favorite guests in 5 minutes instead of 3 hours.")
 
 authenticate()
