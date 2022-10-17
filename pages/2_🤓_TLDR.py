@@ -26,7 +26,7 @@ if increase_usage():
                 get_steamship_client(),
                 tag_filter_query=f'blocktag and kind "topic_summary" and value("confidence") > 0.5'
                                  f'and samefile {{ file_id "{file_id}" }}',
-            ).data.tags, key=lambda tag: -tag.value["confidence"]
+            ).tags, key=lambda tag: -tag.value["confidence"]
         )
         topic_hashtags = " #".join(
             [topic.name.split(">")[-1] for topic in topics]
@@ -37,7 +37,7 @@ if increase_usage():
             get_steamship_client(),
             tag_filter_query=f'blocktag and kind "chapter" '
                              f'and samefile {{ file_id "{file_id}" }}',
-        ).data.tags, key=lambda x: int(x.name))
+        ).tags, key=lambda x: int(x.name))
 
         for chapter in chapters:
             st.markdown(f"## Chapter {chapter.name}: {chapter.value['gist']}")

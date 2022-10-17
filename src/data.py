@@ -14,7 +14,7 @@ def load_guest_tags() -> Dict[str, Set[str]]:
     guest_tags = Tag.query(
         get_steamship_client(),
         tag_filter_query='filetag and kind "guest"',
-    ).data.tags
+    ).tags
 
     return {k: {x.file_id for x in v} for k, v in
             groupby(sorted(guest_tags, key=lambda x: x.name), key=lambda x: x.name)}
@@ -31,7 +31,7 @@ def select_guests_by_topic(selected_topic: str) -> List[str]:
                          f'     or name "{selected_topic.upper()}" '
                          f'     or name "{selected_topic.capitalize()}" '
                          f'}}',
-    ).data.tags]
+    ).tags]
 
 
 @st.cache(ttl=3600)
@@ -40,7 +40,7 @@ def load_topics() -> List[str]:
     entity_tags = Tag.query(
         get_steamship_client(),
         tag_filter_query='blocktag and kind "entity"',
-    ).data.tags
+    ).tags
 
     filtered_entity_tags = [
         topic
@@ -71,7 +71,7 @@ def get_entity_tags_by_topic(selected_topic: str, selected_speaker: str) -> List
                          f'     or name "{selected_topic.upper()}" '
                          f'     or name "{selected_topic.capitalize()}" ) '
                          f'and samefile {{ filetag and kind "guest" and name "{selected_speaker}"}}',
-    ).data.tags
+    ).tags
 
 
 @st.cache(ttl=3600)
@@ -79,4 +79,4 @@ def fetch_youtube_url(file_id: str):
     return Tag.query(
         get_steamship_client(),
         tag_filter_query=f'filetag and kind "youtube_url" and samefile {{ file_id "{file_id}" }}'
-    ).data.tags[0].name
+    ).tags[0].name

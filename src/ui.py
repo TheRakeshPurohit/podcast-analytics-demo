@@ -45,9 +45,9 @@ def select_topic():
 
 def fetch_sentiment_and_speaker_tag(entity_tag_id: str):
     sentiment_tags = Tag.query(get_steamship_client(),
-                               tag_filter_query=f'blocktag and kind "sentiment" and overlaps {{tag_id "{entity_tag_id}"}}').data.tags
+                               tag_filter_query=f'blocktag and kind "sentiment" and overlaps {{tag_id "{entity_tag_id}"}}').tags
     speaker_tags = Tag.query(get_steamship_client(),
-                             tag_filter_query=f'blocktag and kind "speaker" and overlaps {{tag_id "{entity_tag_id}"}}').data.tags
+                             tag_filter_query=f'blocktag and kind "speaker" and overlaps {{tag_id "{entity_tag_id}"}}').tags
     return sentiment_tags[0].name, speaker_tags[0].name
 
 
