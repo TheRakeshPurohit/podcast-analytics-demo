@@ -44,12 +44,14 @@ def check_usage(usage_stats: Dict[str, Union[str, int]]) -> bool:
                 " \n "
                 " \n "
                 f"Sign up [here]({TYPEFORM_FORM}) to analyze and index your own podcasts.",
-                icon="🥳")
+                icon="🥳",
+            )
         if usage_stats[APP_ID] > USAGE_LIMIT:
             with st.session_state["callout_placeholder"]:
                 st.error(
                     f"You've used up all your usage credits. \n \n [Contact us]({TYPEFORM_FORM}) for more credits.",
-                    icon="😱")
+                    icon="😱",
+                )
             return False
         else:
             return True
@@ -145,8 +147,9 @@ def authenticate() -> None:
 
 def show_login_prompt(authorization_url):
     """Show Google Oauth login prompt."""
-    st.sidebar.markdown("### Please sign in to use the app \n"
-                        "We have to protect our engine from bots!")
+    st.sidebar.markdown(
+        "### Please sign in to use the app \n" "We have to protect our engine from bots!"
+    )
     image = Path("data/google_login_button.png")
     file_ = image.open("rb")
     contents = file_.read()

@@ -10,5 +10,5 @@ def get_steamship_client() -> Steamship:
         api_base="https://api.steamship.com/api/v1/",
         app_base="https://steamship.run/",
         web_base="https://app.steamship.com",
-        workspace="podcasts"
+        workspace="podcasts",
     )

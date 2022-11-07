@@ -1,4 +1,4 @@
-steamship==2.1.32
+steamship==2.2.0
 pandas
 streamlit
 plotly
